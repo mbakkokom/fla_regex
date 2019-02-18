@@ -3,10 +3,10 @@ package org.mbakkokom.simpleregex.interpreter.ast.entities;
 import java.util.Arrays;
 
 public class StringEntity extends Entity {
-    protected char[] string;
+    protected SymbolEntity[] string;
 
     public StringEntity() {
-        this.string = new char[]{};
+        this.string = new SymbolEntity[]{};
     }
 
     private StringEntity(boolean init) {
@@ -17,14 +17,14 @@ public class StringEntity extends Entity {
         }
     }
 
-    public StringEntity(char[] string) {
+    public StringEntity(SymbolEntity[] string) {
         this.string = string.clone();
     }
 
     public static StringEntity fromSymbol(SymbolEntity s1) {
         StringEntity r = new StringEntity(false);
 
-        r.string = new char[] { s1.getSymbolChar() };
+        r.string = new SymbolEntity[] { s1 };
 
         return r;
     }
@@ -41,14 +41,14 @@ public class StringEntity extends Entity {
     public static StringEntity fromConcatSymbols(SymbolEntity s1, SymbolEntity s2) {
         StringEntity r = new StringEntity(false);
 
-        r.string = new char[] { s1.getSymbolChar(), s2.getSymbolChar() };
+        r.string = new SymbolEntity[] { s1, s2 };
 
         return r;
     }
 
     public static StringEntity fromConcatStrings(StringEntity s1, StringEntity s2) {
         StringEntity r = new StringEntity(false);
-        char[] a1 = s1.getString(), a2 = s2.getString();
+        SymbolEntity[] a1 = s1.getString(), a2 = s2.getString();
         int l1 = a1.length, l2 = a2.length;
 
         r.string = Arrays.copyOf(a1, l1 + l2);
@@ -59,11 +59,11 @@ public class StringEntity extends Entity {
 
     public static StringEntity fromSymbolConcatString(SymbolEntity s1, StringEntity s2) {
         StringEntity r = new StringEntity(false);
-        char a1 = s1.getSymbolChar();
-        char[] a2 = s2.getString();
+        SymbolEntity a1 = s1;
+        SymbolEntity[] a2 = s2.getString();
         int l2 = a2.length;
 
-        r.string = new char[l2 + 1];
+        r.string = new SymbolEntity[l2 + 1];
         r.string[0] = a1;
         System.arraycopy(a2, 0, r.string, 1, l2);
 
@@ -72,8 +72,8 @@ public class StringEntity extends Entity {
 
     public static StringEntity fromStringConcatSymbol(StringEntity s1, SymbolEntity s2) {
         StringEntity r = new StringEntity(false);
-        char[] a1 = s1.getString();
-        char a2 = s2.getSymbolChar();
+        SymbolEntity[] a1 = s1.getString();
+        SymbolEntity a2 = s2;
         int l1 = a1.length;
 
         r.string = Arrays.copyOf(a1, l1 + 1);
@@ -82,11 +82,11 @@ public class StringEntity extends Entity {
         return r;
     }
 
-    public char[] getString() {
+    public SymbolEntity[] getString() {
         return this.string.clone();
     }
 
-    public void setString(char[] string) {
+    public void setString(SymbolEntity[] string) {
         this.string = string.clone();
     }
 

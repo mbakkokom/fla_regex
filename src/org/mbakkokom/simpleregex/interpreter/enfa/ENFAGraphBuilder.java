@@ -93,18 +93,18 @@ public class ENFAGraphBuilder {
         } else if (l == 1) {
             buildSymbolGraph(beginState, endState, symbols[0]);
         } else {
-            int i = 0;
+            int i = 0, k = l -1;
 
             State s = this.graph.createState(1, "s" + _stringCount++);
 
-            for (; i < l; i++) {
+            for (; i < k; i++) {
                 State n = this.graph.createState(1, "s" + _stringCount++);
                 s.addTransition(this.graph.createTransition(symbols[i], n));
 
                 s = n;
             }
 
-            s.addTransition(this.graph.createTransition(symbols[i], endState));
+            s.addTransition(this.graph.createTransition(symbols[k], endState));
         }
     }
 

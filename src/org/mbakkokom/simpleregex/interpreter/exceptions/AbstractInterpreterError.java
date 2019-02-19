@@ -11,12 +11,12 @@ public abstract class AbstractInterpreterError extends RuntimeException {
         this("", index);
     }
 
-    public AbstractInterpreterError(String msg) {
-        this(msg, -1);
+    public AbstractInterpreterError(String message) {
+        this(message, -1);
     }
 
-    public AbstractInterpreterError(String msg, int index) {
-        super(msg);
+    public AbstractInterpreterError(String message, int index) {
+        super(message);
         this.index = index;
     }
 

@@ -22,7 +22,7 @@ public class Parser {
         if (head == null) {
             return node;
         } else if (node == null) {
-            throw new ParseError(index, "cannot append a null node to the expression tree");
+            throw new ParseError("cannot append a null node to the expression tree", index);
         } else {
             EntityType ht = head.type(), nt = node.type();
             if (ht == EntityType.ENTITY_SYMBOL) {
@@ -42,7 +42,7 @@ public class Parser {
             } /* TODO: handles more types */
         }
 
-        throw new ParseError(index,"IMPOSSIBLE!");
+        throw new ParseError("IMPOSSIBLE!", index);
     }
 
     private Entity _parseString(char[] input, int offset, int length) throws ParseError {
@@ -72,7 +72,7 @@ public class Parser {
                                     end = i;
                                     break;
                                 } else if (pcount < 0) {
-                                    throw new ParseError(i, "unexpected token");
+                                    throw new ParseError("unexpected token", i);
                                 }
                             }
                         }
@@ -81,9 +81,9 @@ public class Parser {
                     int expr_length = begin - end;
 
                     if (expr_length == 0 || pcount != 0) {
-                        throw new ParseError(i, "unexpected end-of-file");
+                        throw new ParseError("unexpected end-of-file", i);
                     } else if (expr_length == 1) {
-                        throw new ParseError(i, "unexpected empty set");
+                        throw new ParseError("unexpected empty set", i);
                     }
 
                     head = this.addNodeToTree(i, head, this._parseString(input, begin + 1, expr_length - 1));

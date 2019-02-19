@@ -1,5 +1,7 @@
 package org.mbakkokom.simpleregex.interpreter.tokenizer;
 
+import org.mbakkokom.simpleregex.interpreter.exceptions.ParseError;
+
 import java.util.ArrayList;
 
 public class Tokenizer {
@@ -45,7 +47,7 @@ public class Tokenizer {
         }
 
         if (lit) {
-            throw new IllegalStateException("unexpected end-of-file after character '\\'");
+            throw new ParseError("unexpected end-of-file after character '\\'", i);
         }
 
         return r;

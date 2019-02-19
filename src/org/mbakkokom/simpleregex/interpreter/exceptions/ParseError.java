@@ -5,11 +5,11 @@ public class ParseError extends AbstractInterpreterError {
         super("", -1);
     }
 
-    public ParseError(int index) {
-        super("", index);
+    public ParseError(String message) {
+        super(message, -1);
     }
 
-    public ParseError(int index, String msg) {
-        super(msg, index);
+    public ParseError(String message, int index) {
+        super(message, index);
     }
 }

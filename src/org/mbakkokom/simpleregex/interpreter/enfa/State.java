@@ -1,5 +1,7 @@
 package org.mbakkokom.simpleregex.interpreter.enfa;
 
+import java.util.ArrayList;
+
 public class State {
     public String name;
     public boolean isFinalState;
@@ -37,5 +39,28 @@ public class State {
         Transition[] r = new Transition[this.transitionsLastIndex];
         System.arraycopy(this.transitions, 0, r, 0, this.transitionsLastIndex);
         return r;
+    }
+
+    public boolean hasTransitionTo(State next) {
+        for (int i = 0; i < this.transitionsLastIndex; i++) {
+            if (this.transitions[i].getNextState() == next) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public ArrayList<Transition> getTransitionsTo(State next) {
+        ArrayList<Transition> list = new ArrayList<>();
+
+        for (int i = 0; i < this.transitionsLastIndex; i++) {
+            Transition t = this.transitions[i];
+            if (t.getNextState() == next) {
+                list.add(t);
+            }
+        }
+
+        return list;
     }
 }

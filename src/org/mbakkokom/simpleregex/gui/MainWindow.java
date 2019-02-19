@@ -84,6 +84,8 @@ public class MainWindow extends JFrame {
             }
         });
 
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
         transitionTable.setShowGrid(true);
 
         add(mainPanel);

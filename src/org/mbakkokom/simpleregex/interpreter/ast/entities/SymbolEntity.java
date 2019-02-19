@@ -7,6 +7,10 @@ public class SymbolEntity implements Entity {
         this((char) 0);
     }
 
+    public SymbolEntity(SymbolEntity symbol) {
+        this(symbol.getSymbolChar());
+    }
+
     public SymbolEntity(char symbol) {
         this.symbolChar = symbol;
     }
@@ -25,5 +29,9 @@ public class SymbolEntity implements Entity {
 
     public int precedence() {
         return 0;
+    }
+
+    public boolean equals(SymbolEntity obj) {
+        return this.type() == obj.type() && this.symbolChar == obj.symbolChar;
     }
 }

@@ -1,8 +1,12 @@
 package org.mbakkokom.simpleregex.interpreter;
 
-import org.mbakkokom.simpleregex.interpreter.ast.AbstractSyntaxTreeBuilder;
+import org.mbakkokom.simpleregex.interpreter.ast.RegexSyntaxTreeBuilder;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.*;
-import org.mbakkokom.simpleregex.interpreter.exceptions.TreeBuilderSyntaxError;
+import org.mbakkokom.simpleregex.interpreter.enfa.ENFAGraph;
+import org.mbakkokom.simpleregex.interpreter.enfa.ENFAGraphBuilder;
+import org.mbakkokom.simpleregex.interpreter.enfa.State;
+import org.mbakkokom.simpleregex.interpreter.enfa.Transition;
+import org.mbakkokom.simpleregex.interpreter.exceptions.SyntaxTreeBuilderSyntaxError;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Tokenizer;
 
 import java.io.BufferedReader;
@@ -54,13 +58,28 @@ public class ParserTest {
             System.out.print("> ");
             while ((line = br.readLine()) != null) {
                 try {
-                    Entity head = AbstractSyntaxTreeBuilder.getInstance(Tokenizer.readFromString(line)).buildTree().getTreeHead();
+                    Entity head = RegexSyntaxTreeBuilder.createBuilder(Tokenizer.readFromString(line)).buildTree().getTreeHead();
+
                     System.out.print("= ");
                     if (head != null) {
                         printTree(head);
                     }
                     System.out.print('\n');
-                } catch (TreeBuilderSyntaxError ex) {
+
+                    ENFAGraph graph = ENFAGraphBuilder.fromTreeHead(head).buildENFAGraph().getGraph();
+
+                    for (State s : graph.states) {
+                        System.out.println("[" + s.name + "]");
+
+                        for (Transition t : s.getTransitions()) {
+                            System.out.println("=> " + t.getNextState().name);
+                        }
+
+                        System.out.println();
+                    }
+
+                    System.out.println("COMPILE SUCCESS!");
+                } catch (SyntaxTreeBuilderSyntaxError ex) {
                     System.out.println(ex.getClass() + ": " + ex.getMessage() + " at index " + ex.getToken().getIndex());
                     //throw ex;
                 }

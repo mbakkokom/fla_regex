@@ -1,9 +1,9 @@
 package org.mbakkokom.simpleregex.interpreter.ast;
 
 import org.mbakkokom.simpleregex.interpreter.ast.entities.*;
-import org.mbakkokom.simpleregex.interpreter.exceptions.AbstractTreeBuilderError;
-import org.mbakkokom.simpleregex.interpreter.exceptions.TreeBuilderInternalError;
-import org.mbakkokom.simpleregex.interpreter.exceptions.TreeBuilderSyntaxError;
+import org.mbakkokom.simpleregex.interpreter.exceptions.AbstractSyntaxTreeBuilderError;
+import org.mbakkokom.simpleregex.interpreter.exceptions.SyntaxTreeBuilderInternalError;
+import org.mbakkokom.simpleregex.interpreter.exceptions.SyntaxTreeBuilderSyntaxError;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Token;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.TokenType;
 
@@ -12,22 +12,21 @@ import java.util.ArrayList;
 /*
  * TODO. total rewrite for `appendToTree` functions.
  */
-public class AbstractSyntaxTreeBuilder {
+public class RegexSyntaxTreeBuilder {
     protected ArrayList<Token> tokens;
 
-    /* there should be only ONE SetEntity on "this" AbstractSyntaxTreeBuilder instance */
+    /* there should be only ONE SetEntity on "this" RegexSyntaxTreeBuilder instance */
     protected SetEntity treeHead;
     protected Entity lastEntity;
 
     protected boolean danglingUnion = false;
 
-    private AbstractSyntaxTreeBuilder(ArrayList<Token> tokens) {
-        this.treeHead = new SetEntity();
+    private RegexSyntaxTreeBuilder(ArrayList<Token> tokens) {
         this.tokens = new ArrayList<>(tokens);
     }
 
-    public static AbstractSyntaxTreeBuilder getInstance(ArrayList<Token> tokens) {
-        return new AbstractSyntaxTreeBuilder(tokens);
+    public static RegexSyntaxTreeBuilder createBuilder(ArrayList<Token> tokens) {
+        return new RegexSyntaxTreeBuilder(tokens);
     }
 
     /*
@@ -83,7 +82,7 @@ public class AbstractSyntaxTreeBuilder {
         Entity head = _getCurrentTreeHead();
 
         if (head == null) {
-            throw new TreeBuilderInternalError("invalid state when trying to push closure", tok);
+            throw new SyntaxTreeBuilderInternalError("invalid state when trying to push closure", tok);
         }
 
         Entity cur = head;
@@ -136,13 +135,14 @@ public class AbstractSyntaxTreeBuilder {
                 pushElse(s, token);
                 break;
             default:
-                throw new TreeBuilderInternalError("unimplemented push_" + s.type().toString(), token);
+                throw new SyntaxTreeBuilderInternalError("unimplemented push_" + s.type().toString(), token);
         }
 
     }
 
-    public AbstractSyntaxTreeBuilder buildTree() throws AbstractTreeBuilderError {
+    public RegexSyntaxTreeBuilder buildTree() throws AbstractSyntaxTreeBuilderError {
         int i = 0, length = this.tokens.size();
+        this.treeHead = new SetEntity();
 
         ArrayList<SymbolEntity> lastString = new ArrayList<>();
 
@@ -151,7 +151,7 @@ public class AbstractSyntaxTreeBuilder {
             TokenType t = tok.getType();
 
             if (t == TokenType.TOKEN_INVALID) {
-                throw new TreeBuilderSyntaxError("unexpected TOKEN_INVALID", tok);
+                throw new SyntaxTreeBuilderSyntaxError("unexpected TOKEN_INVALID", tok);
             } else if (t == TokenType.TOKEN_SYMBOL) {
                 lastString.add(new SymbolEntity(tok.getRawValue()));
             } else if (t == TokenType.TOKEN_SYMBOL_SPC_EMPTY_SET) {
@@ -183,22 +183,22 @@ public class AbstractSyntaxTreeBuilder {
                     }
 
                     if (close - open == 0) {
-                        throw new TreeBuilderSyntaxError("unexpected end-of-file after TOKEN_PAREN_OPEN", tok);
+                        throw new SyntaxTreeBuilderSyntaxError("unexpected end-of-file after TOKEN_PAREN_OPEN", tok);
                     } else if (level != 0) {
-                        throw new TreeBuilderSyntaxError("no matching TOKEN_PAREN_CLOSE", tok);
+                        throw new SyntaxTreeBuilderSyntaxError("no matching TOKEN_PAREN_CLOSE", tok);
                     }
 
-                    Entity nested = AbstractSyntaxTreeBuilder.getInstance(
+                    Entity nested = RegexSyntaxTreeBuilder.createBuilder(
                             new ArrayList<>(this.tokens.subList(open + 1, close))
                     ).buildTree().getTreeHead();
 
                     if (nested == null) {
-                        throw new TreeBuilderSyntaxError("unexpected result from parenthesis", tok);
+                        throw new SyntaxTreeBuilderSyntaxError("unexpected result from parenthesis", tok);
                     } else {
                         pushEntity(nested, this.tokens.get(close));
                     }
                 } else if (t == TokenType.TOKEN_PAREN_CLOSE) {
-                    throw new TreeBuilderSyntaxError("unexpected TOKEN_PAREN_CLOSE", tok);
+                    throw new SyntaxTreeBuilderSyntaxError("unexpected TOKEN_PAREN_CLOSE", tok);
                 } else if (t == TokenType.TOKEN_OP_UNION) {
                     if (!lastString.isEmpty()) {
                         StringEntity s = new StringEntity(lastString.toArray(new SymbolEntity[]{}));
@@ -207,7 +207,7 @@ public class AbstractSyntaxTreeBuilder {
                     }
 
                     if (this.danglingUnion || this.lastEntity == null) {
-                        throw new TreeBuilderSyntaxError("unexpected TOKEN_OP_UNION", tok);
+                        throw new SyntaxTreeBuilderSyntaxError("unexpected TOKEN_OP_UNION", tok);
                     } else {
                         this.danglingUnion = true;
                     }
@@ -219,7 +219,7 @@ public class AbstractSyntaxTreeBuilder {
                     }
 
                     if (this.lastEntity == null) {
-                        throw new TreeBuilderSyntaxError("unexpected TOKEN_OP_CLOSURE", tok);
+                        throw new SyntaxTreeBuilderSyntaxError("unexpected TOKEN_OP_CLOSURE", tok);
                     } else {
                         _pushClosure(tok);
                     }
@@ -238,7 +238,7 @@ public class AbstractSyntaxTreeBuilder {
             //       can use this.lastEntity and this.danglingUnion to check trivial integrity.
 
             if (this.danglingUnion) {
-                throw new TreeBuilderSyntaxError("unexpected end-of-file", lastToken);
+                throw new SyntaxTreeBuilderSyntaxError("unexpected end-of-file", lastToken);
             }
         }
 

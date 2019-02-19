@@ -1,7 +1,5 @@
 package org.mbakkokom.simpleregex.interpreter.ast.entities;
 
-import org.mbakkokom.simpleregex.interpreter.exceptions.TreeBuilderInternalError;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 

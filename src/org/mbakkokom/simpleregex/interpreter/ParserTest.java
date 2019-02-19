@@ -16,39 +16,41 @@ import java.util.ArrayList;
 
 public class ParserTest {
     public static void printTree(Entity e) {
-        EntityType t = e.type();
+        if (e != null) {
+            EntityType t = e.type();
 
-        if (t == EntityType.ENTITY_SET) {
-            ArrayList<Entity> s = (SetEntity) e;
-            int i = 0, l = s.size() - 1;
+            if (t == EntityType.ENTITY_SET) {
+                ArrayList<Entity> s = (SetEntity) e;
+                int i = 0, l = s.size() - 1;
 
-            System.out.print('(');
-            if (l > 0) {
-                while (true) {
-                    printTree(s.get(i));
-                    if (i == l) {
-                        break;
-                    } else {
-                        System.out.print('+');
-                        i++;
+                System.out.print('(');
+                if (l > 0) {
+                    while (true) {
+                        printTree(s.get(i));
+                        if (i == l) {
+                            break;
+                        } else {
+                            System.out.print('+');
+                            i++;
+                        }
                     }
                 }
+                System.out.print(')');
+            } else if (t == EntityType.ENTITY_CONCAT) {
+                ConcatEntity c = (ConcatEntity) e;
+                printTree(c.getlValue());
+                printTree(c.getrValue());
+            } else if (t == EntityType.ENTITY_CLOSURE) {
+                ClosureEntity c = (ClosureEntity) e;
+                printTree(c.getEntity());
+                System.out.print('*');
+            } else if (t == EntityType.ENTITY_STRING) {
+                for (SymbolEntity s : ((StringEntity) e).getString()) {
+                    printTree(s);
+                }
+            } else if (t == EntityType.ENTITY_SYMBOL) {
+                System.out.print(((SymbolEntity) e).getSymbolChar());
             }
-            System.out.print(')');
-        } else if (t == EntityType.ENTITY_CONCAT) {
-            ConcatEntity c = (ConcatEntity) e;
-            printTree(c.getlValue());
-            printTree(c.getrValue());
-        } else if (t == EntityType.ENTITY_CLOSURE) {
-            ClosureEntity c = (ClosureEntity) e;
-            printTree(c.getEntity());
-            System.out.print('*');
-        } else if (t == EntityType.ENTITY_STRING) {
-            for (SymbolEntity s : ((StringEntity) e).getString()) {
-                printTree(s);
-            }
-        } else if (t == EntityType.ENTITY_SYMBOL) {
-            System.out.print(((SymbolEntity) e).getSymbolChar());
         }
     }
 

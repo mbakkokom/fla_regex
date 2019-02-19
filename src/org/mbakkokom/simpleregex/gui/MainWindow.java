@@ -1,7 +1,7 @@
 package org.mbakkokom.simpleregex.gui;
 
 import org.mbakkokom.simpleregex.enfa.evaluator.Evaluator;
-import org.mbakkokom.simpleregex.interpreter.ParserTest;
+import org.mbakkokom.simpleregex.exceptions.ParseError;
 import org.mbakkokom.simpleregex.interpreter.ast.RegexSyntaxTreeBuilder;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.Entity;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.SpecialSymbolEntity;
@@ -34,6 +34,7 @@ public class MainWindow extends JFrame {
     private JTextArea compileLogTextArea;
     private JTextField evaluatorTextField;
     private JButton regexSpecEpsilonButton;
+    private JButton evaluatorEpsilonButton;
 
     /* Interpreter instances */
     ArrayList<Token> regexTokens;
@@ -66,8 +67,6 @@ public class MainWindow extends JFrame {
 
                         printCompileLog("-> Creating evaluator...\n");
                         regexEvaluator = Evaluator.fromGraph(regexGraph);
-
-                        ParserTest.printTree(regexTreeHead);
                     } catch (AbstractSyntaxTreeBuilderError ex) {
                         printCompileLog("\n!! ERROR !!\n");
                         printCompileLog(
@@ -102,49 +101,62 @@ public class MainWindow extends JFrame {
         transitionTable.setShowGrid(true);
         this.compileLogTextArea.setFont(Font.decode("Monospaced"));
 
-        add(mainPanel);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setContentPane(mainPanel);
 
         setTitle("RegEx compiler, εNFA graph generator");
         setMinimumSize(new Dimension(500, 400));
+
         evaluatorTextField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                evaluate();
+                evaluateSampleText();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                evaluate();
+                evaluateSampleText();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                evaluate();
-            }
-
-            public void evaluate() {
-                Evaluator e = regexEvaluator;
-                if (e == null) {
-
-                } else {
-                    if (e.evaluate(evaluatorTextField.getText())) {
-                        evaluatorTextField.setBackground(Color.green);
-                    } else {
-                        evaluatorTextField.setBackground(Color.red);
-                    }
-                }
+                evaluateSampleText();
             }
         });
+
         regexSpecEpsilonButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 regexSpecTextArea.append("ε");
             }
         });
+
+        evaluatorEpsilonButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                evaluatorTextField.setText(evaluatorTextField.getText() + "ε");
+            }
+        });
     }
 
     private void refreshData() {
         this.transitionTable.setModel(new TransitionTableModel());
+        evaluateSampleText();
+    }
+
+    private void evaluateSampleText() {
+        Evaluator e = regexEvaluator;
+        if (e != null) {
+            try {
+                if (e.evaluate(evaluatorTextField.getText())) {
+                    evaluatorTextField.setBackground(Color.green);
+                } else {
+                    evaluatorTextField.setBackground(Color.red);
+                }
+            } catch (ParseError ex) {
+                evaluatorTextField.setBackground(Color.yellow);
+            }
+        }
     }
 
     private void clearCompileLog() {

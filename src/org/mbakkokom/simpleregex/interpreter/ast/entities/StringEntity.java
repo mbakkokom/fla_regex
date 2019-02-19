@@ -94,7 +94,6 @@ public class StringEntity implements Entity {
         return this.string.length;
     }
 
-
     public EntityType type() {
         return EntityType.ENTITY_STRING;
     }

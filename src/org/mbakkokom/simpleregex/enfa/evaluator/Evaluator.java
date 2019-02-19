@@ -53,13 +53,7 @@ public class Evaluator {
         if ((s == null || s == "") && this.graph == null) {
             return true;
         } else {
-            EvaluatorString str = EvaluatorString.fromString(s);
-
-            if (str.value.isEmpty()) {
-                return this.graph == null;
-            } else {
-                return _evaluate(str);
-            }
+            return _evaluate(EvaluatorString.fromString(s));
         }
     }
 }

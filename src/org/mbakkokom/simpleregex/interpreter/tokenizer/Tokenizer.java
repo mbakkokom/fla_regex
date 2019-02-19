@@ -15,9 +15,21 @@ public class Tokenizer {
         for (; i < length; i++) {
             char c = input[i];
 
-            if (c == '\\') {
+            if (lit) {
+                switch(c) {
+                    case 'n':
+                        r.add(new Token(TokenType.TOKEN_SYMBOL, '\n', i));
+                        break;
+                    case 't':
+                        r.add(new Token(TokenType.TOKEN_SYMBOL, '\t', i));
+                        break;
+                    default:
+                        r.add(new Token(TokenType.TOKEN_SYMBOL, c, i));
+                }
+                lit = false;
+            } else if (c == '\\') {
                 lit = !lit;
-            } else if (!lit) {
+            } else {
                 switch (c) {
                     case 'ε':
                         r.add(new Token(TokenType.TOKEN_SYMBOL_SPC_EMPTY_STRING, c, i));
@@ -41,8 +53,6 @@ public class Tokenizer {
                         r.add(new Token(TokenType.TOKEN_SYMBOL, c, i));
                         break;
                 }
-            } else {
-                r.add(new Token(TokenType.TOKEN_SYMBOL, c, i));
             }
         }
 
@@ -63,22 +73,29 @@ public class Tokenizer {
         for (; i < length; i++) {
             char c = input[i];
 
-            if (c == '\\') {
+            if (lit) {
+                switch(c) {
+                    case 'n':
+                        r.add(new Token(TokenType.TOKEN_SYMBOL, '\n', i));
+                        break;
+                    case 't':
+                        r.add(new Token(TokenType.TOKEN_SYMBOL, '\t', i));
+                        break;
+                    default:
+                        r.add(new Token(TokenType.TOKEN_SYMBOL, c, i));
+                }
+                lit = false;
+            } else if (c == '\\') {
                 lit = !lit;
-            } else if (!lit) {
+            } else {
                 switch (c) {
                     case 'ε':
-                        r.add(new Token(TokenType.TOKEN_SYMBOL_SPC_EMPTY_STRING, c, i));
-                        break;
                     case '∅':
-                        r.add(new Token(TokenType.TOKEN_SYMBOL_SPC_EMPTY_SET, c, i));
                         break;
                     default:
                         r.add(new Token(TokenType.TOKEN_SYMBOL, c, i));
                         break;
                 }
-            } else {
-                r.add(new Token(TokenType.TOKEN_SYMBOL, c, i));
             }
         }
 

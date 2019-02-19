@@ -215,9 +215,21 @@ public class RegexSyntaxTreeBuilder {
                     }
                 } else if (t == TokenType.TOKEN_OP_CLOSURE) {
                     if (!lastString.isEmpty()) {
-                        StringEntity s = new StringEntity(lastString.toArray(new SymbolEntity[]{}));
-                        pushString(s, tok);
-                        lastString.clear();
+                        int ln = lastString.size();
+                        if (ln > 1) {
+                            StringEntity s = new StringEntity(lastString.subList(0, ln - 1).toArray(new SymbolEntity[]{}));
+                            pushString(s, tok);
+
+                            ClosureEntity c = new ClosureEntity(lastString.get(ln - 1));
+                            pushElse(c, tok);
+
+                            lastString.clear();
+                            continue;
+                        } else {
+                            StringEntity s = new StringEntity(lastString.toArray(new SymbolEntity[]{}));
+                            pushString(s, tok);
+                            lastString.clear();
+                        }
                     }
 
                     if (this.lastEntity == null) {

@@ -2,7 +2,7 @@ package org.mbakkokom.simpleregex.interpreter.ast.entities;
 
 import java.util.Arrays;
 
-public class StringEntity extends Entity {
+public class StringEntity implements Entity {
     protected SymbolEntity[] string;
 
     public StringEntity() {
@@ -94,8 +94,12 @@ public class StringEntity extends Entity {
         return this.string.length;
     }
 
-    @Override
+
     public EntityType type() {
-        return EntityType.ENTITY_SYMBOL;
+        return EntityType.ENTITY_STRING;
+    }
+
+    public int precedence() {
+        return 0;
     }
 }

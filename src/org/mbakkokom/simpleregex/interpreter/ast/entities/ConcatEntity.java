@@ -1,6 +1,6 @@
 package org.mbakkokom.simpleregex.interpreter.ast.entities;
 
-public class ConcatEntity extends Entity {
+public class ConcatEntity implements Entity {
     protected Entity lValue, rValue;
 
     public ConcatEntity() {
@@ -28,8 +28,11 @@ public class ConcatEntity extends Entity {
         this.rValue = rValue;
     }
 
-    @Override
     public EntityType type() {
         return EntityType.ENTITY_CONCAT;
+    }
+
+    public int precedence() {
+        return 2;
     }
 }

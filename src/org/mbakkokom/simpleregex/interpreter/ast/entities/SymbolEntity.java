@@ -1,6 +1,6 @@
 package org.mbakkokom.simpleregex.interpreter.ast.entities;
 
-public class SymbolEntity extends Entity {
+public class SymbolEntity implements Entity {
     protected char symbolChar;
 
     public SymbolEntity() {
@@ -19,8 +19,11 @@ public class SymbolEntity extends Entity {
         this.symbolChar = symbolChar;
     }
 
-    @Override
     public EntityType type() {
         return EntityType.ENTITY_SYMBOL;
+    }
+
+    public int precedence() {
+        return 0;
     }
 }

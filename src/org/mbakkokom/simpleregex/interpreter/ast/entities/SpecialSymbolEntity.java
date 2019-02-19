@@ -8,7 +8,6 @@ public class SpecialSymbolEntity extends SymbolEntity {
         super(symbol);
     }
 
-    @Override
     public EntityType type() {
         return EntityType.ENTITY_SPECIAL_SYMBOL;
     }

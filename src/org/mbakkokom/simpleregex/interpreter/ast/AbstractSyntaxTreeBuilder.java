@@ -2,22 +2,27 @@ package org.mbakkokom.simpleregex.interpreter.ast;
 
 import org.mbakkokom.simpleregex.interpreter.ast.entities.*;
 import org.mbakkokom.simpleregex.interpreter.exceptions.AbstractTreeBuilderError;
+import org.mbakkokom.simpleregex.interpreter.exceptions.TreeBuilderInternalError;
 import org.mbakkokom.simpleregex.interpreter.exceptions.TreeBuilderSyntaxError;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Token;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.TokenType;
 
 import java.util.ArrayList;
 
+/*
+ * TODO. total rewrite for `appendToTree` functions.
+ */
 public class AbstractSyntaxTreeBuilder {
     protected ArrayList<Token> tokens;
 
-    protected Entity treeHead;
+    /* there should be only ONE SetEntity on "this" AbstractSyntaxTreeBuilder instance */
+    protected SetEntity treeHead;
     protected Entity lastEntity;
 
     protected boolean danglingUnion = false;
-    //protected Entity lastSetEntity;
 
     private AbstractSyntaxTreeBuilder(ArrayList<Token> tokens) {
+        this.treeHead = new SetEntity();
         this.tokens = new ArrayList<>(tokens);
     }
 
@@ -25,63 +30,119 @@ public class AbstractSyntaxTreeBuilder {
         return new AbstractSyntaxTreeBuilder(tokens);
     }
 
-    protected void pushEntity(Entity e, Token token) {
-        if (this.treeHead == null) {
-            this.treeHead = e;
+    /*
+     * Currently, precedence is 'ignored' in the sense that it is assumed that the tree will have a specific structure.
+     * For instance, all `ConcatEntity` will have the previous entity on the left side and the new 'right-operand'
+     * entity on the right side; therefore any operation with higher precedence will need to operate the right-operand
+     * only.
+     */
+
+    private Entity _getCurrentTreeHead() {
+        int ln = this.treeHead.size();
+        if (ln >= 1) {
+            return this.treeHead.get(ln - 1);
         } else {
-            EntityType t = e.type();
-            if (t == EntityType.ENTITY_STRING) {
-                _pushStringEntity((StringEntity) e, token);
-            }
+            return null;
         }
-
-        /* TODO: more cases */
-
-        throw new TreeBuilderSyntaxError(
-                "unexpected case AbstractSyntaxTreeBuilder::pushEntity: " +
-                        e.getClass().getTypeName() + ", toHead: " + this.treeHead.getClass().getTypeName(),
-                token);
     }
 
-    protected void _pushStringEntity(StringEntity s, Token token) {
-        EntityType t = this.treeHead.type();
-        if (t == EntityType.ENTITY_SYMBOL) {
-            this.lastEntity = StringEntity.fromSymbolConcatString((SymbolEntity) this.treeHead, s);
-            this.treeHead = this.lastEntity;
-        } else if (t == EntityType.ENTITY_STRING) {
-            this.lastEntity = StringEntity.fromConcatStrings((StringEntity) this.treeHead, s);
-            this.treeHead = this.lastEntity;
-        } else if (t == EntityType.ENTITY_SET) {
-            ((SetEntity) this.treeHead).addEntity(s);
-            this.lastEntity = this.treeHead;
-        } else if (t == EntityType.ENTITY_CONCAT) {
-            ConcatEntity c = (ConcatEntity) this.treeHead;
-            if (c.getlValue() == null) {
-                c.setlValue(s);
-                this.lastEntity = this.treeHead;
-            } else if (c.getrValue() == null) {
-                c.setrValue(s);
-                this.lastEntity = this.treeHead;
+    private void pushString(StringEntity s, Token token) {
+        Entity head = _getCurrentTreeHead();
+        if (head == null) {
+            this.treeHead.add(s);
+            this.lastEntity = s;
+        } else if (danglingUnion) {
+            this.treeHead.add(s);
+            danglingUnion = false;
+            this.lastEntity = s;
+        } else {
+            EntityType t = head.type();
+
+            /*
+            if (t == EntityType.ENTITY_CONCAT && ((ConcatEntity) head).getrValue().type() == EntityType.ENTITY_STRING) {
+
+            } else */
+
+            if (t == EntityType.ENTITY_STRING) {
+                Entity n = StringEntity.fromConcatStrings((StringEntity) head, s);
+                this.treeHead.replaceLastEntity(n);
+                this.lastEntity = n;
+            } else if (t == EntityType.ENTITY_SYMBOL || t == EntityType.ENTITY_SPECIAL_SYMBOL) {
+                Entity n = StringEntity.fromSymbolConcatString((SymbolEntity) head, s);
+                this.treeHead.replaceLastEntity(n);
+                this.lastEntity = n;
             } else {
-                this.lastEntity =  new ConcatEntity(c, s);
-                this.treeHead = this.lastEntity;
+                ConcatEntity c = new ConcatEntity(head, s);
+                this.treeHead.replaceLastEntity(c);
+                this.lastEntity = s;
             }
-        } else if (t == EntityType.ENTITY_CLOSURE) {
-            this.lastEntity = new ConcatEntity(this.treeHead, s);
-            this.treeHead = this.lastEntity;
+        }
+    }
+
+    private void _pushClosure(Token tok) {
+        Entity head = _getCurrentTreeHead();
+
+        if (head == null) {
+            throw new TreeBuilderInternalError("invalid state when trying to push closure", tok);
         }
 
-        /* TODO: more cases */
+        Entity cur = head;
+        ClosureEntity cl = null;
+        int prTarget = (new ConcatEntity()).precedence();  // because Java interface does not support static method.
 
-        throw new TreeBuilderSyntaxError(
-                "unexpected case AbstractSyntaxTreeBuilder::pushEntity: " +
-                        s.getClass().getTypeName() + ", toHead: " + this.treeHead.getClass().getTypeName(),
-                token);
+        if (cur.precedence() < prTarget) {
+            cl = new ClosureEntity(cur);
+            this.treeHead.replaceLastEntity(cl);
+        } else {
+            while (true) {
+                Entity c = ((ConcatEntity) cur).getrValue();
+
+                head = cur;
+                cur = c;
+
+                if (c.precedence() < prTarget) {
+                    break;
+                }
+            }
+
+            cl = new ClosureEntity(cur);
+            ((ConcatEntity) head).setrValue(cl);
+        }
+
+        this.lastEntity = cl;
+    }
+
+    private void pushElse(Entity c, Token token) {
+        Entity head = _getCurrentTreeHead();
+        if (head == null) {
+            this.treeHead.add(c);
+        } else if (danglingUnion) {
+            this.treeHead.add(c);
+            danglingUnion = false;
+        } else {
+            ConcatEntity cn = new ConcatEntity(head, c);
+            this.treeHead.replaceLastEntity(cn);
+            this.lastEntity = c;
+        }
+    }
+
+    private void pushEntity(Entity s, Token token) {
+        switch(s.type()) {
+            case ENTITY_STRING:
+                pushString((StringEntity) s, token);
+                break;
+            case ENTITY_SET:
+            case ENTITY_CONCAT:
+                pushElse(s, token);
+                break;
+            default:
+                throw new TreeBuilderInternalError("unimplemented push_" + s.type().toString(), token);
+        }
+
     }
 
     public AbstractSyntaxTreeBuilder buildTree() throws AbstractTreeBuilderError {
         int i = 0, length = this.tokens.size();
-        this.treeHead = null;
 
         ArrayList<SymbolEntity> lastString = new ArrayList<>();
 
@@ -98,14 +159,14 @@ public class AbstractSyntaxTreeBuilder {
             } else if (t == TokenType.TOKEN_SYMBOL_SPC_EMPTY_STRING) {
                 lastString.add(SpecialSymbolEntity.EmptyString);
             } else {
-                // TODO. put this on each case instead.
-                if (!lastString.isEmpty()) {
-                    pushEntity(new StringEntity((SymbolEntity[]) lastString.toArray()), tok);
-                    lastString.clear();
-                }
-
                 if (t == TokenType.TOKEN_PAREN_OPEN) {
-                    // TODO. find matching TOKEN_PAREN_CLOSE, use recursive call to build nested tree.
+                    if (!lastString.isEmpty()) {
+                        StringEntity s = new StringEntity(lastString.toArray(new SymbolEntity[]{}));
+                        pushString(s, tok);
+                        lastString.clear();
+                    }
+
+                    // find matching TOKEN_PAREN_CLOSE, use recursive call to build nested tree.
                     int open = i, close = i, level = 1;
 
                     for (i++; i < length; i++) {
@@ -128,54 +189,71 @@ public class AbstractSyntaxTreeBuilder {
                     }
 
                     Entity nested = AbstractSyntaxTreeBuilder.getInstance(
-                            new ArrayList<Token>(this.tokens.subList(open + 1, close))
+                            new ArrayList<>(this.tokens.subList(open + 1, close))
                     ).buildTree().getTreeHead();
 
-                    // TODO. push to tree
                     if (nested == null) {
                         throw new TreeBuilderSyntaxError("unexpected result from parenthesis", tok);
                     } else {
-                        pushEntity(nested, this.tokens.get(close - 1));
+                        pushEntity(nested, this.tokens.get(close));
                     }
                 } else if (t == TokenType.TOKEN_PAREN_CLOSE) {
                     throw new TreeBuilderSyntaxError("unexpected TOKEN_PAREN_CLOSE", tok);
                 } else if (t == TokenType.TOKEN_OP_UNION) {
+                    if (!lastString.isEmpty()) {
+                        StringEntity s = new StringEntity(lastString.toArray(new SymbolEntity[]{}));
+                        this.pushString(s, tok);
+                        lastString.clear();
+                    }
+
                     if (this.danglingUnion || this.lastEntity == null) {
                         throw new TreeBuilderSyntaxError("unexpected TOKEN_OP_UNION", tok);
                     } else {
-                        /* 1. find lastEntity in tree
-                         * 2. replace with SetEntity
-                         * 3. add lastEntity to SetEntity
-                         */
+                        this.danglingUnion = true;
                     }
                 } else if (t == TokenType.TOKEN_OP_CLOSURE) {
+                    if (!lastString.isEmpty()) {
+                        StringEntity s = new StringEntity(lastString.toArray(new SymbolEntity[]{}));
+                        pushString(s, tok);
+                        lastString.clear();
+                    }
+
                     if (this.lastEntity == null) {
                         throw new TreeBuilderSyntaxError("unexpected TOKEN_OP_CLOSURE", tok);
                     } else {
-                        // TODO.
+                        _pushClosure(tok);
                     }
                 }
             }
         }
 
-        Token lastToken = this.tokens.get(length - 1);
+        if (length > 0) {
+            Token lastToken = this.tokens.get(length - 1);
 
-        if (!lastString.isEmpty()) {
-            pushEntity(new StringEntity((SymbolEntity[]) lastString.toArray()), lastToken);
-        }
+            if (!lastString.isEmpty()) {
+                pushEntity(new StringEntity(lastString.toArray(new SymbolEntity[]{})), lastToken);
+            }
 
-        // TODO. perform checking on tree integrity,
-        //       can use this.lastEntity and this.danglingUnion to check trivial integrity.
+            // TODO. perform checking on tree integrity,
+            //       can use this.lastEntity and this.danglingUnion to check trivial integrity.
 
-        if (this.danglingUnion) {
-            throw new TreeBuilderSyntaxError("unexpected end-of-file", lastToken);
+            if (this.danglingUnion) {
+                throw new TreeBuilderSyntaxError("unexpected end-of-file", lastToken);
+            }
         }
 
         return this;
     }
 
     public Entity getTreeHead() {
-        return this.treeHead;
+        int size = this.treeHead.size();
+        if (size <= 0) {
+            return null;
+        } else if (size == 1) {
+            return this.treeHead.get(0);
+        } else {
+            return this.treeHead;
+        }
     }
 
     public ArrayList<Token> getTokens() {

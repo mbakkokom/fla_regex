@@ -21,6 +21,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class MainWindow extends JFrame {
@@ -49,6 +50,8 @@ public class MainWindow extends JFrame {
                 String spec = regexSpecTextArea.getText();
                 clearCompileLog();
 
+                printCompileLog(".. Compiling at " + LocalDateTime.now().toString() + "\n");
+
                 regexTokens = null;
                 regexTreeHead = null;
                 regexGraph = null;
@@ -67,6 +70,8 @@ public class MainWindow extends JFrame {
 
                         printCompileLog("-> Creating evaluator...\n");
                         regexEvaluator = Evaluator.fromGraph(regexGraph);
+
+                        printCompileLog(".. Finished compiling\n");
                     } catch (AbstractSyntaxTreeBuilderError ex) {
                         printCompileLog("\n!! ERROR !!\n");
                         printCompileLog(
@@ -91,7 +96,7 @@ public class MainWindow extends JFrame {
 
                     refreshData();
                 } else {
-                    printCompileLog(".. input is empty\n");
+                    printCompileLog(".. Input is empty\n");
                 }
             }
         });
@@ -99,6 +104,7 @@ public class MainWindow extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         transitionTable.setShowGrid(true);
+        this.compileLogTextArea.setEditable(false);
         this.compileLogTextArea.setFont(Font.decode("Monospaced"));
 
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -168,6 +174,11 @@ public class MainWindow extends JFrame {
     }
 
     private class TransitionTableModel extends DefaultTableModel {
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return false;
+        }
+
         @Override
         public int getColumnCount() {
             Graph g = regexGraph;

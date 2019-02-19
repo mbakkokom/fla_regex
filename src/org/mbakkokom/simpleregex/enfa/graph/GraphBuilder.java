@@ -47,7 +47,6 @@ public class GraphBuilder {
         closureBegin.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureMiddleBegin));
         closureBegin.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureEnd));
         closureMiddleEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureEnd));
-        closureMiddleEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureMiddleBegin));
         closureEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, endState));
 
         if (set) {
@@ -55,6 +54,8 @@ public class GraphBuilder {
         } else {
             buildGraph(closureMiddleBegin, closureMiddleEnd, child);
         }
+
+        closureMiddleEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureMiddleBegin));
     }
 
     private void _buildSetGraph(State beginState, State endState, SetEntity setEntity) {

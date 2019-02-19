@@ -1,10 +1,10 @@
-package org.mbakkokom.simpleregex.interpreter.enfa;
+package org.mbakkokom.simpleregex.enfa.graph;
 
 import org.mbakkokom.simpleregex.interpreter.ast.entities.SymbolEntity;
 
 import java.util.ArrayList;
 
-public class ENFAGraph {
+public class Graph {
     public ArrayList<State> states = new ArrayList<>();
     public ArrayList<Transition> transitions = new ArrayList<>();
 

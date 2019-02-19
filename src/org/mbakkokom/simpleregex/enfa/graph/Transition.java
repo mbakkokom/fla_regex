@@ -1,4 +1,4 @@
-package org.mbakkokom.simpleregex.interpreter.enfa;
+package org.mbakkokom.simpleregex.enfa.graph;
 
 import org.mbakkokom.simpleregex.interpreter.ast.entities.EntityType;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.SymbolEntity;
@@ -26,6 +26,10 @@ public class Transition {
 
     public boolean isSpecialSymbol() {
         return this.symbol.type() == EntityType.ENTITY_SPECIAL_SYMBOL;
+    }
+
+    public SymbolEntity getSymbol() {
+        return symbol;
     }
 
     public boolean match(SymbolEntity symbol) {

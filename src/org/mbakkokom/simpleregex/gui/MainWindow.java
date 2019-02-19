@@ -1,18 +1,22 @@
 package org.mbakkokom.simpleregex.gui;
 
+import org.mbakkokom.simpleregex.enfa.evaluator.Evaluator;
+import org.mbakkokom.simpleregex.interpreter.ParserTest;
 import org.mbakkokom.simpleregex.interpreter.ast.RegexSyntaxTreeBuilder;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.Entity;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.SpecialSymbolEntity;
-import org.mbakkokom.simpleregex.interpreter.enfa.ENFAGraph;
-import org.mbakkokom.simpleregex.interpreter.enfa.ENFAGraphBuilder;
-import org.mbakkokom.simpleregex.interpreter.enfa.State;
-import org.mbakkokom.simpleregex.interpreter.enfa.Transition;
-import org.mbakkokom.simpleregex.interpreter.exceptions.AbstractInterpreterError;
-import org.mbakkokom.simpleregex.interpreter.exceptions.AbstractSyntaxTreeBuilderError;
+import org.mbakkokom.simpleregex.enfa.graph.Graph;
+import org.mbakkokom.simpleregex.enfa.graph.GraphBuilder;
+import org.mbakkokom.simpleregex.enfa.graph.State;
+import org.mbakkokom.simpleregex.enfa.graph.Transition;
+import org.mbakkokom.simpleregex.exceptions.AbstractInterpreterError;
+import org.mbakkokom.simpleregex.exceptions.AbstractSyntaxTreeBuilderError;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Token;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Tokenizer;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -28,11 +32,14 @@ public class MainWindow extends JFrame {
     private JPanel mainPanel;
     private JPanel regexSpecPanel;
     private JTextArea compileLogTextArea;
+    private JTextField evaluatorTextField;
+    private JButton regexSpecEpsilonButton;
 
     /* Interpreter instances */
     ArrayList<Token> regexTokens;
     Entity regexTreeHead;
-    ENFAGraph regexGraph;
+    Graph regexGraph;
+    Evaluator regexEvaluator;
 
     public MainWindow() {
         compileSpecButton.addActionListener(new ActionListener() {
@@ -44,6 +51,7 @@ public class MainWindow extends JFrame {
                 regexTokens = null;
                 regexTreeHead = null;
                 regexGraph = null;
+                regexEvaluator = null;
 
                 if (spec.length() > 0) {
                     try {
@@ -54,7 +62,12 @@ public class MainWindow extends JFrame {
                         regexTreeHead = RegexSyntaxTreeBuilder.createBuilder(regexTokens).buildTree().getTreeHead();
 
                         printCompileLog("-> Building εNFA graph...\n");
-                        regexGraph = ENFAGraphBuilder.fromTreeHead(regexTreeHead).buildENFAGraph().getGraph();
+                        regexGraph = GraphBuilder.fromTreeHead(regexTreeHead).buildENFAGraph().getGraph();
+
+                        printCompileLog("-> Creating evaluator...\n");
+                        regexEvaluator = Evaluator.fromGraph(regexGraph);
+
+                        ParserTest.printTree(regexTreeHead);
                     } catch (AbstractSyntaxTreeBuilderError ex) {
                         printCompileLog("\n!! ERROR !!\n");
                         printCompileLog(
@@ -87,15 +100,51 @@ public class MainWindow extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         transitionTable.setShowGrid(true);
+        this.compileLogTextArea.setFont(Font.decode("Monospaced"));
 
         add(mainPanel);
 
         setTitle("RegEx compiler, εNFA graph generator");
         setMinimumSize(new Dimension(500, 400));
+        evaluatorTextField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                evaluate();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                evaluate();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                evaluate();
+            }
+
+            public void evaluate() {
+                Evaluator e = regexEvaluator;
+                if (e == null) {
+
+                } else {
+                    if (e.evaluate(evaluatorTextField.getText())) {
+                        evaluatorTextField.setBackground(Color.green);
+                    } else {
+                        evaluatorTextField.setBackground(Color.red);
+                    }
+                }
+            }
+        });
+        regexSpecEpsilonButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                regexSpecTextArea.append("ε");
+            }
+        });
     }
 
     private void refreshData() {
-        transitionTable.setModel(new TransitionTableModel());
+        this.transitionTable.setModel(new TransitionTableModel());
     }
 
     private void clearCompileLog() {
@@ -109,7 +158,7 @@ public class MainWindow extends JFrame {
     private class TransitionTableModel extends DefaultTableModel {
         @Override
         public int getColumnCount() {
-            ENFAGraph g = regexGraph;
+            Graph g = regexGraph;
             if (g == null) {
                 return 0;
             } else {
@@ -119,7 +168,7 @@ public class MainWindow extends JFrame {
 
         @Override
         public int getRowCount() {
-            ENFAGraph g = regexGraph;
+            Graph g = regexGraph;
             if (g == null) {
                 return 0;
             } else {
@@ -129,7 +178,7 @@ public class MainWindow extends JFrame {
 
         @Override
         public Object getValueAt(int row, int col) {
-            ENFAGraph g = regexGraph;
+            Graph g = regexGraph;
             if (g == null) {
                 return 0;
             } else if (col == 0) {
@@ -179,7 +228,7 @@ public class MainWindow extends JFrame {
 
         @Override
         public String getColumnName(int column) {
-            ENFAGraph g = regexGraph;
+            Graph g = regexGraph;
             if (column == 0) {
                 return null;
             } else {

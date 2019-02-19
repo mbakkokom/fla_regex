@@ -1,9 +1,9 @@
 package org.mbakkokom.simpleregex.interpreter.ast;
 
 import org.mbakkokom.simpleregex.interpreter.ast.entities.*;
-import org.mbakkokom.simpleregex.interpreter.exceptions.AbstractSyntaxTreeBuilderError;
-import org.mbakkokom.simpleregex.interpreter.exceptions.SyntaxTreeBuilderInternalError;
-import org.mbakkokom.simpleregex.interpreter.exceptions.SyntaxTreeBuilderSyntaxError;
+import org.mbakkokom.simpleregex.exceptions.AbstractSyntaxTreeBuilderError;
+import org.mbakkokom.simpleregex.exceptions.SyntaxTreeBuilderInternalError;
+import org.mbakkokom.simpleregex.exceptions.SyntaxTreeBuilderSyntaxError;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Token;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.TokenType;
 
@@ -115,9 +115,11 @@ public class RegexSyntaxTreeBuilder {
         Entity head = _getCurrentTreeHead();
         if (head == null) {
             this.treeHead.add(c);
+            this.lastEntity = c;
         } else if (danglingUnion) {
             this.treeHead.add(c);
             danglingUnion = false;
+            this.lastEntity = c;
         } else {
             ConcatEntity cn = new ConcatEntity(head, c);
             this.treeHead.replaceLastEntity(cn);

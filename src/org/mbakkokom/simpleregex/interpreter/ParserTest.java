@@ -1,12 +1,12 @@
 package org.mbakkokom.simpleregex.interpreter;
 
+import org.mbakkokom.simpleregex.enfa.graph.Graph;
 import org.mbakkokom.simpleregex.interpreter.ast.RegexSyntaxTreeBuilder;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.*;
-import org.mbakkokom.simpleregex.interpreter.enfa.ENFAGraph;
-import org.mbakkokom.simpleregex.interpreter.enfa.ENFAGraphBuilder;
-import org.mbakkokom.simpleregex.interpreter.enfa.State;
-import org.mbakkokom.simpleregex.interpreter.enfa.Transition;
-import org.mbakkokom.simpleregex.interpreter.exceptions.SyntaxTreeBuilderSyntaxError;
+import org.mbakkokom.simpleregex.enfa.graph.GraphBuilder;
+import org.mbakkokom.simpleregex.enfa.graph.State;
+import org.mbakkokom.simpleregex.enfa.graph.Transition;
+import org.mbakkokom.simpleregex.exceptions.SyntaxTreeBuilderSyntaxError;
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Tokenizer;
 
 import java.io.BufferedReader;
@@ -66,7 +66,7 @@ public class ParserTest {
                     }
                     System.out.print('\n');
 
-                    ENFAGraph graph = ENFAGraphBuilder.fromTreeHead(head).buildENFAGraph().getGraph();
+                    Graph graph = GraphBuilder.fromTreeHead(head).buildENFAGraph().getGraph();
 
                     for (State s : graph.states) {
                         System.out.println("[" + s.name + "]");

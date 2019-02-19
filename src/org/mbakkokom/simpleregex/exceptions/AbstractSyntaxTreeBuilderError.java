@@ -1,4 +1,4 @@
-package org.mbakkokom.simpleregex.interpreter.exceptions;
+package org.mbakkokom.simpleregex.exceptions;
 
 import org.mbakkokom.simpleregex.interpreter.tokenizer.Token;
 

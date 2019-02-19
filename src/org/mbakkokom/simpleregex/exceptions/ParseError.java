@@ -1,4 +1,4 @@
-package org.mbakkokom.simpleregex.interpreter.exceptions;
+package org.mbakkokom.simpleregex.exceptions;
 
 public class ParseError extends AbstractInterpreterError {
     public ParseError() {

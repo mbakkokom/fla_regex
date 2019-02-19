@@ -1,4 +1,4 @@
-package org.mbakkokom.simpleregex.interpreter.exceptions;
+package org.mbakkokom.simpleregex.exceptions;
 
 public abstract class AbstractInterpreterError extends RuntimeException {
     protected int index;

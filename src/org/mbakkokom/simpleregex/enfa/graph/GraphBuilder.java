@@ -1,10 +1,10 @@
-package org.mbakkokom.simpleregex.interpreter.enfa;
+package org.mbakkokom.simpleregex.enfa.graph;
 
 import org.mbakkokom.simpleregex.interpreter.ast.RegexSyntaxTreeBuilder;
 import org.mbakkokom.simpleregex.interpreter.ast.entities.*;
 
-public class ENFAGraphBuilder {
-    private ENFAGraph graph;
+public class GraphBuilder {
+    private Graph graph;
     private Entity treeHead;
 
     private int _closureBeginCount = 0;
@@ -17,12 +17,12 @@ public class ENFAGraphBuilder {
 
     private int _stringCount = 0;
 
-    public static ENFAGraphBuilder fromBuilder(RegexSyntaxTreeBuilder builder) {
-        return ENFAGraphBuilder.fromTreeHead(builder.getTreeHead());
+    public static GraphBuilder fromBuilder(RegexSyntaxTreeBuilder builder) {
+        return GraphBuilder.fromTreeHead(builder.getTreeHead());
     }
 
-    public static ENFAGraphBuilder fromTreeHead(Entity treeHead) {
-        ENFAGraphBuilder f = new ENFAGraphBuilder();
+    public static GraphBuilder fromTreeHead(Entity treeHead) {
+        GraphBuilder f = new GraphBuilder();
         f.treeHead = treeHead;
         return f;
     }
@@ -44,9 +44,11 @@ public class ENFAGraphBuilder {
 
         beginState.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureBegin));
 
+        closureBegin.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureMiddleBegin));
         closureBegin.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureEnd));
+        closureMiddleEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureEnd));
         closureMiddleEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureMiddleBegin));
-        closureEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, closureBegin));
+        closureEnd.addTransition(this.graph.createTransition(SpecialSymbolEntity.EmptyString, endState));
 
         if (set) {
             _buildSetGraph(closureMiddleBegin, closureMiddleEnd, (SetEntity) child);
@@ -93,9 +95,9 @@ public class ENFAGraphBuilder {
         } else if (l == 1) {
             buildSymbolGraph(beginState, endState, symbols[0]);
         } else {
-            int i = 0, k = l -1;
-
+            int i = 1, k = l -1;
             State s = this.graph.createState(1, "s" + _stringCount++);
+            beginState.addTransition(this.graph.createTransition(symbols[0], s));
 
             for (; i < k; i++) {
                 State n = this.graph.createState(1, "s" + _stringCount++);
@@ -139,8 +141,8 @@ public class ENFAGraphBuilder {
         }
     }
 
-    public ENFAGraphBuilder buildENFAGraph() {
-        this.graph = new ENFAGraph();
+    public GraphBuilder buildENFAGraph() {
+        this.graph = new Graph();
 
         this.graph.beginState = this.graph.createState(1, "begin");
         this.graph.endState = this.graph.createState(0, "end", true);
@@ -150,7 +152,7 @@ public class ENFAGraphBuilder {
         return this;
     }
 
-    public ENFAGraph getGraph() {
+    public Graph getGraph() {
         return graph;
     }
 }

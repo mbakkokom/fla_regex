@@ -1,4 +1,4 @@
-package org.mbakkokom.simpleregex.interpreter.enfa;
+package org.mbakkokom.simpleregex.enfa.graph;
 
 import java.util.ArrayList;
 

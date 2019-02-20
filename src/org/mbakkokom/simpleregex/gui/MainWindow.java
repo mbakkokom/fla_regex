@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class MainWindow extends JFrame {
-    private JTextArea regexSpecTextArea;
     private JTabbedPane resultTabbedPane;
     private JPanel transitionTableTab;
     private JTable transitionTable;
@@ -33,9 +32,10 @@ public class MainWindow extends JFrame {
     private JPanel mainPanel;
     private JPanel regexSpecPanel;
     private JTextArea compileLogTextArea;
-    private JTextField evaluatorTextField;
     private JButton regexSpecEpsilonButton;
     private JButton evaluatorEpsilonButton;
+    private JTextField regexSpecTextField;
+    private JTextArea evaluatorTextArea;
 
     /* Interpreter instances */
     ArrayList<Token> regexTokens;
@@ -47,7 +47,7 @@ public class MainWindow extends JFrame {
         compileSpecButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String spec = regexSpecTextArea.getText();
+                String spec = regexSpecTextField.getText();
                 clearCompileLog();
 
                 printCompileLog(".. Compiling at " + LocalDateTime.now().toString() + "\n");
@@ -117,7 +117,7 @@ public class MainWindow extends JFrame {
         setTitle("RegEx compiler, εNFA graph generator");
         setMinimumSize(new Dimension(500, 400));
 
-        evaluatorTextField.getDocument().addDocumentListener(new DocumentListener() {
+        evaluatorTextArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 evaluateSampleText();
@@ -137,14 +137,14 @@ public class MainWindow extends JFrame {
         regexSpecEpsilonButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                regexSpecTextArea.append("ε");
+                regexSpecTextField.setText(regexSpecTextField.getText() + "ε");
             }
         });
 
         evaluatorEpsilonButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                evaluatorTextField.setText(evaluatorTextField.getText() + "ε");
+                evaluatorTextArea.append("ε");
             }
         });
     }
@@ -158,13 +158,13 @@ public class MainWindow extends JFrame {
         Evaluator e = regexEvaluator;
         if (e != null) {
             try {
-                if (e.evaluate(evaluatorTextField.getText())) {
-                    evaluatorTextField.setBackground(Color.green);
+                if (e.evaluate(evaluatorTextArea.getText())) {
+                    evaluatorTextArea.setBackground(Color.green);
                 } else {
-                    evaluatorTextField.setBackground(Color.red);
+                    evaluatorTextArea.setBackground(Color.red);
                 }
             } catch (ParseError ex) {
-                evaluatorTextField.setBackground(Color.yellow);
+                evaluatorTextArea.setBackground(Color.yellow);
             }
         }
     }

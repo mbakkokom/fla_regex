@@ -79,6 +79,8 @@ public class MainWindow extends JFrame {
                                         " at index " + ex.getIndex() + " (" + ex.getToken().getType().toString() + ")\n"
                         );
 
+                        printCompileLog("\n!! Stack trace !!\n");
+
                         for (StackTraceElement st : ex.getStackTrace()) {
                             printCompileLog(st.toString() + "\n");
                         }
@@ -88,6 +90,8 @@ public class MainWindow extends JFrame {
                                 ex.getClass().getTypeName() + ": " + ex.getMessage() +
                                         " at index " + ex.getIndex() + "\n"
                         );
+
+                        printCompileLog("\n!! Stack trace !!\n");
 
                         for (StackTraceElement st : ex.getStackTrace()) {
                             printCompileLog(st.toString() + "\n");

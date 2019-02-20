@@ -9,9 +9,6 @@ import org.mbakkokom.simpleregex.interpreter.tokenizer.TokenType;
 
 import java.util.ArrayList;
 
-/*
- * TODO. total rewrite for `appendToTree` functions.
- */
 public class RegexSyntaxTreeBuilder {
     protected ArrayList<Token> tokens;
 

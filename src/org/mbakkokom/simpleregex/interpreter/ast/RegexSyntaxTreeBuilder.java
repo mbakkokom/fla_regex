@@ -26,13 +26,6 @@ public class RegexSyntaxTreeBuilder {
         return new RegexSyntaxTreeBuilder(tokens);
     }
 
-    /*
-     * Currently, precedence is 'ignored' in the sense that it is assumed that the tree will have a specific structure.
-     * For instance, all `ConcatEntity` will have the previous entity on the left side and the new 'right-operand'
-     * entity on the right side; therefore any operation with higher precedence will need to operate the right-operand
-     * only.
-     */
-
     private Entity _getCurrentTreeHead() {
         int ln = this.treeHead.size();
         if (ln >= 1) {
@@ -53,11 +46,6 @@ public class RegexSyntaxTreeBuilder {
             this.lastEntity = s;
         } else {
             EntityType t = head.type();
-
-            /*
-            if (t == EntityType.ENTITY_CONCAT && ((ConcatEntity) head).getrValue().type() == EntityType.ENTITY_STRING) {
-
-            } else */
 
             if (t == EntityType.ENTITY_STRING) {
                 Entity n = StringEntity.fromConcatStrings((StringEntity) head, s);

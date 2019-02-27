@@ -41,7 +41,7 @@ public class Evaluator {
                 if (t.getSymbol() == SpecialSymbolEntity.EmptyString) {
                     stack.addLast(new EvaluatorState(str, currentIndex, nextState));
                 } if (currentIndex < ln && t.match(cur.getCurrentSymbolEntity())) {
-                    stack.add(new EvaluatorState(str, nextIndex, nextState));
+                    stack.addFirst(new EvaluatorState(str, nextIndex, nextState));
                 }
             }
         }
